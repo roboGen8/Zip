@@ -1,101 +1,68 @@
-#from matplotlib import pyplot as plt
-#import numpy as np
-#import mpl_toolkits.mplot3d.axes3d as p3
-#from matplotlib import animation
-#
-#fig = plt.figure()
-#ax = p3.Axes3D(fig)
-#
-#def gen(n):
-#    phi = 0
-#    while phi < 2*np.pi:
-#        yield np.array([np.cos(phi), np.sin(phi), phi])
-#        phi += 2*np.pi/n
-#
-#def update(num, data, line):
-#    line.set_data(data[:2, :num])
-#    line.set_3d_properties(data[2, :num])
-#
-#N = 100
-#data = np.array(list(gen(N))).T
-#line, = ax.plot(data[0, 0:1], data[1, 0:1], data[2, 0:1])
-#
-## Setting the axes properties
-#ax.set_xlim3d([-1.0, 1.0])
-#ax.set_xlabel('X')
-#
-#ax.set_ylim3d([-1.0, 1.0])
-#ax.set_ylabel('Y')
-#
-#ax.set_zlim3d([0.0, 10.0])
-#ax.set_zlabel('Z')
-#
-#ani = animation.FuncAnimation(fig, update, N, fargs=(data, line), interval=10000/N, blit=False)
-##ani.save('matplot003.gif', writer='imagemagick')
-#plt.show()
-
-
-import numpy as np
+import csv
+import pandas
 import matplotlib.pyplot as plt
+import os
+import numpy as np
 import mpl_toolkits.mplot3d.axes3d as p3
-import matplotlib.animation as animation
-
-# Fixing random state for reproducibility
-np.random.seed(19680801)
-
-
-def Gen_RandLine(length, dims=2):
-    """
-    Create a line using a random walk algorithm
-
-    length is the number of points for the line.
-    dims is the number of dimensions the line has.
-    """
-    lineData = np.empty((dims, length))
-    lineData[:, 0] = np.random.rand(dims)
-    for index in range(1, length):
-        # scaling the random numbers by 0.1 so
-        # movement is small compared to position.
-        # subtraction by 0.5 is to change the range to [-0.5, 0.5]
-        # to allow a line to move backwards.
-        step = ((np.random.rand(dims) - 0.5) * 0.1)
-        lineData[:, index] = lineData[:, index - 1] + step
-
-    return lineData
+from matplotlib import animation
+from time import time, sleep
+import math
 
 
-def update_lines(num, dataLines, lines):
-    for line, data in zip(lines, dataLines):
-        # NOTE: there is no .set_data() for 3 dim data...
-        line.set_data(data[0:2, :num])
-        line.set_3d_properties(data[2, :num])
-    return lines
 
-# Attaching 3D axis to the figure
-fig = plt.figure()
-ax = p3.Axes3D(fig)
+# Calculates Rotation Matrix given euler angles.
+def eulerAnglesToRotationMatrix(theta) :
+     
+    R_x = np.array([[1,         0,                  0                   ],
+                    [0,         math.cos(theta[0]), -math.sin(theta[0]) ],
+                    [0,         math.sin(theta[0]), math.cos(theta[0])  ]
+                    ])
+         
+         
+                     
+    R_y = np.array([[math.cos(theta[1]),    0,      math.sin(theta[1])  ],
+                    [0,                     1,      0                   ],
+                    [-math.sin(theta[1]),   0,      math.cos(theta[1])  ]
+                    ])
+                 
+    R_z = np.array([[math.cos(theta[2]),    -math.sin(theta[2]),    0],
+                    [math.sin(theta[2]),    math.cos(theta[2]),     0],
+                    [0,                     0,                      1]
+                    ])
+                     
+                     
+    R = np.dot(R_z, np.dot( R_y, R_x ))
+ 
+    return R
 
-# Fifty lines of random 3-D lines
-data = [Gen_RandLine(25, 3) for index in range(50)]
 
-# Creating fifty line objects.
-# NOTE: Can't pass empty arrays into 3d version of plot()
-lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1])[0] for dat in data]
+#Figure for drone motion
+fig2 = plt.figure(2)
+ax2 = p3.Axes3D(fig2)
 
-# Setting the axes properties
-ax.set_xlim3d([0.0, 1.0])
-ax.set_xlabel('X')
+ax2.set_xlim3d([-2, 2])
+ax2.set_xlabel('X')
 
-ax.set_ylim3d([0.0, 1.0])
-ax.set_ylabel('Y')
+ax2.set_ylim3d([-2, 2])
+ax2.set_ylabel('Y')
 
-ax.set_zlim3d([0.0, 1.0])
-ax.set_zlabel('Z')
+ax2.set_zlim3d([-2, 2])
+ax2.set_zlabel('Z')
 
-ax.set_title('3D Test')
+planeX = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1, -1, -1, -1, -1, -1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.1, -0.2, -0.3, -0.4, -0.5, -1, -1, -1, -1, -1, -1]
+planeY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.1, -0.2, -0.3, -0.4, -0.5, 0.1, 0.2, 0.3, 0.4, 0.5, -0.1, -0.2, -0.3, 0.1, 0.2, 0.3]
+planeZ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+plane3D = [planeX, planeY, planeZ]
 
-# Creating the Animation object
-line_ani = animation.FuncAnimation(fig, update_lines, 25, fargs=(data, lines),
-                                   interval=50, blit=False)
+#plt.plot(planeX, planeY, planeZ, 'ok')
+for i in range(90):
+    theta0 = i * 1.0 * math.pi / 180 
+    R = eulerAnglesToRotationMatrix([theta0, 0, 0])
+    plane3D = np.matmul(R, plane3D)
+    plt.plot(plane3D[0][:], plane3D[1][:], plane3D[2][:], 'ro')
+    sleep(0.5)
+    plt.show()
 
-plt.show()
+#plt.gcf().clear()
+
+

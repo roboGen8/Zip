@@ -11,6 +11,7 @@ import numpy as np
 import mpl_toolkits.mplot3d.axes3d as p3
 from matplotlib import animation
 from time import time, sleep
+import math
 
 
 #Read Data
@@ -54,41 +55,22 @@ timeCount = 0
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 
-ax.set_xlim3d([min(posX), max(posX)])
-ax.set_xlabel('X')
-
-ax.set_ylim3d([min(posY), max(posY)])
-ax.set_ylabel('Y')
-
-ax.set_zlim3d([-1 * max(posZ), -1 * min(posZ)])
-ax.set_zlabel('Z')
+planeX = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1, -1, -1, -1, -1, -1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.1, -0.2, -0.3, -0.4, -0.5, -1, -1, -1, -1, -1, -1]
+planeY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.1, -0.2, -0.3, -0.4, -0.5, 0.1, 0.2, 0.3, 0.4, 0.5, -0.1, -0.2, -0.3, 0.1, 0.2, 0.3]
+planeZ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02, 0.04, 0.06, 0.08, 0.10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+planeSize = 30
+for i in range(len(planeX)):
+    planeX[i] *= planeSize
+    planeY[i] *= planeSize
+    planeZ[i] *= planeSize
+plane3D = np.array([planeX, planeY, planeZ])
+        
+temp = [[0 for x in range(len(planeX))] for y in range(3)] 
+temp2 = [[0 for x in range(len(planeX))] for y in range(3)] 
 
 def gen(n):
     for i in range(len(posX)):
         yield np.array([posX[i], posY[i], -1 * posZ[i]])
-
-def update(num, data, line):
-    line.set_data(data[:2, :num])
-    line.set_3d_properties(data[2, :num])
-    global timeCount
-    sleep(timeDif[timeCount])
-    timeCount += 1
-
-N = 1000
-data = np.array(list(gen(N))).T
-line, = ax.plot(data[0, 0:1], data[1, 0:1], data[2, 0:1])
-
-ani = animation.FuncAnimation(fig, update, N, fargs=(data, line), interval=10000/N, blit=False)
-#ani.save('matplot003.gif', writer='imagemagick')
-plt.show()
-
-
-
-
-
-
-
-
 
 # Calculates Rotation Matrix given euler angles.
 def eulerAnglesToRotationMatrix(theta) :
@@ -116,34 +98,76 @@ def eulerAnglesToRotationMatrix(theta) :
     return R
 
 
-# Checks if a matrix is a valid rotation matrix.
-def isRotationMatrix(R) :
-    Rt = np.transpose(R)
-    shouldBeIdentity = np.dot(Rt, R)
-    I = np.identity(3, dtype = R.dtype)
-    n = np.linalg.norm(I - shouldBeIdentity)
-    return n < 1e-6
- 
- 
-# Calculates rotation matrix to euler angles
-# The result is the same as MATLAB except the order
-# of the euler angles ( x and z are swapped ).
-def rotationMatrixToEulerAngles(R) :
- 
-    assert(isRotationMatrix(R))
-     
-    sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
-     
-    singular = sy < 1e-6
- 
-    if  not singular :
-        x = math.atan2(R[2,1] , R[2,2])
-        y = math.atan2(-R[2,0], sy)
-        z = math.atan2(R[1,0], R[0,0])
-    else :
-        x = math.atan2(-R[1,2], R[1,1])
-        y = math.atan2(-R[2,0], sy)
-        z = 0
- 
-    return np.array([x, y, z])
+def update(num, data, line):
+#    plt.plot(temp[0][:], temp[1][:], temp[2][:], 'wo')
+    line.set_data(data[:2, :num])
+    line.set_3d_properties(data[2, :num])
+    currOrientation = [roll[timeCount], -1 * pitch[timeCount], yaw[timeCount]]
+    currR = eulerAnglesToRotationMatrix(currOrientation)
+    temp = np.matmul(currR, plane3D)
+    #orientation of the plane
+    for i in range(3):
+        for j in range(len(planeX)):
+            temp2[i][j] = temp[i][j] + data[i][timeCount]
+    
+    
+#    temp2 = np.matmul(currR, temp)
+    
+    ax.clear()
+    ax.set_xlim3d([min(posX), max(posX)])
+    ax.set_xlabel('X')
+
+    ax.set_ylim3d([min(posY), max(posY)])
+    ax.set_ylabel('Y')
+
+    ax.set_zlim3d([-1 * max(posZ), -1 * min(posZ)])
+    ax.set_zlabel('Z')
+    ax.plot(temp2[0][:], temp2[1][:], temp2[2][:], 'ro')
+#    ax.plot(temp[0][:], temp[1][:], temp[2][:], 'ro')
+    global timeCount
+    sleep(0.1 * timeDif[timeCount])
+    timeCount += 1
+    
+    
+
+N = 1000
+data = np.array(list(gen(N))).T
+line, = ax.plot(data[0, 0:1], data[1, 0:1], data[2, 0:1])
+
+ani = animation.FuncAnimation(fig, update, N, fargs=(data, line), interval=10000/N, blit=False)
+#ani.save('matplot003.gif', writer='imagemagick')
+
+#Figure for drone motion
+#fig2 = plt.figure(2)
+#ax2 = p3.Axes3D(fig2)
+#
+#ax2.set_xlim3d([-2, 2])
+#ax2.set_xlabel('X')
+#
+#ax2.set_ylim3d([-2, 2])
+#ax2.set_ylabel('Y')
+#
+#ax2.set_zlim3d([-2, 2])
+#ax2.set_zlabel('Z')
+#
+#planeX = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1, -1, -1, -1, -1, -1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.1, -0.2, -0.3, -0.4, -0.5, -1, -1, -1, -1, -1, -1]
+#planeY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.1, -0.2, -0.3, -0.4, -0.5, 0.1, 0.2, 0.3, 0.4, 0.5, -0.1, -0.2, -0.3, 0.1, 0.2, 0.3]
+#planeZ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+#plane3D = [planeX, planeY, planeZ]
+#
+#plt.plot(planeX, planeY, planeZ, 'ok')
+
+plt.show()
+plt.clf()
+
+
+
+
+
+
+
+
+
+
+
 
