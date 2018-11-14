@@ -3,6 +3,9 @@
 Code in Python
 Install: pandas, matplotlib, numpy
 
+For Mac or some other cases: in simulation.py line 20 and plot.py line 20
+change '\\' to '/'
+
 #Two important files:
 1. plot.py
 2. simulation.py
