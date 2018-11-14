@@ -30,9 +30,16 @@ except Exception as e:
 #X is North or South
 #Y is East or West
 #Z is Up or Down
-xAxis = int(input("Enter variable for x-axis: "))
+print("0 - time")
+print("1 - posX\t2 - posY\t3 - posZ")
+print("4 - velX\t5 - velY\t6 - velZ")
+print("7 - accX\t8 - accY\t9 - accZ")
+print("10 - roll\t11 - pitch\t12 - yawZ")
+print("13 - angVelX\t14 - angVelY\t15 - angVelZ")
+print("16 - sigmaX\t17 - sigmaY\t18 - sigmaZ")
+xAxis = int(input("Enter number code for x-axis: "))
 
-yAxis = int(input("Enter variable for y-axis: "))
+yAxis = int(input("Enter number code for y-axis: "))
 
 hashX = dict()
 hashY = dict()
@@ -58,59 +65,59 @@ hashX[4] = velX
 hashY[4] = 'velocity_ned_mps[0]'
 
 velY = df['velocity_ned_mps[1]']
-hashX[5] = velX
+hashX[5] = velY
 hashY[5] = 'velocity_ned_mps[1]'
 
 velZ = df['velocity_ned_mps[2]']
-hashX[6] = velX
+hashX[6] = velZ
 hashY[6] = 'velocity_ned_mps[2]'
 
 accX = df['accel_body_mps2[0]']
-hashX[7] = velX
+hashX[7] = accX
 hashY[7] = 'accel_body_mps2[0]'
 
 accY = df['accel_body_mps2[1]']
-hashX[8] = velX
+hashX[8] = accY
 hashY[8] = 'accel_body_mps2[1]'
 
 accZ = df['accel_body_mps2[2]']
-hashX[9] = velX
+hashX[9] = accZ
 hashY[9] = 'accel_body_mps2[2]'
 
 roll = df['orientation_rad[0]']
-hashX[10] = velX
+hashX[10] = roll
 hashY[10] = 'orientation_rad[0]'
 
 pitch = df['orientation_rad[1]']
-hashX[11] = velX
+hashX[11] = pitch
 hashY[11] = 'orientation_rad[1]'
 
 yaw = df['orientation_rad[2]']
-hashX[12] = velX
+hashX[12] = yaw
 hashY[12] = 'orientation_rad[2]'
 
 angVelX = df['angular_rate_body_radps[0]']
-hashX[13] = velX
+hashX[13] = angVelX
 hashY[13] = 'angular_rate_body_radps[0]'
 
 angVelY = df['angular_rate_body_radps[1]']
-hashX[14] = velX
+hashX[14] = angVelY
 hashY[14] = 'angular_rate_body_radps[1]'
 
 angVelZ = df['angular_rate_body_radps[2]']
-hashX[15] = velX
+hashX[15] = angVelZ
 hashY[15] = 'angular_rate_body_radps[2]'
 
 sigmaX = df['position_sigma_ned_m[0]']
-hashX[16] = velX
+hashX[16] = sigmaX
 hashY[16] = 'position_sigma_ned_m[0]'
 
 sigmaY = df['position_sigma_ned_m[1]']
-hashX[17] = velX
+hashX[17] = sigmaY
 hashY[17] = 'position_sigma_ned_m[1]'
 
 sigmaZ = df['position_sigma_ned_m[2]']
-hashX[18] = velX
+hashX[18] = sigmaZ
 hashY[18] = 'position_sigma_ned_m[2]'
 
 def genX():
