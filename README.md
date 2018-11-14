@@ -16,6 +16,7 @@ To run: type python "filename" in command line
 
 #simulation.py
 -Gives 3D visualization of the flight of your choice! The speed and acceleration are incorporated. The drone's roll, pitch, and yaw motion are also added. You can see the video in the files in case you have trouble running the file.
+-Note: you will have to wait for about 15 seconds before drone starts flying
 
 1. Findings
 -There were flights which were stable and ones that experienced turbulence or unsteady control.

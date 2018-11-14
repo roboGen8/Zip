@@ -61,6 +61,7 @@ timeCount = 0
 fig = plt.figure()
 ax = p3.Axes3D(fig)
 
+#this is the drone
 planeX = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1, -1, -1, -1, -1, -1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.1, -0.2, -0.3, -0.4, -0.5, -1, -1, -1, -1, -1, -1]
 planeY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.1, -0.2, -0.3, -0.4, -0.5, 0.1, 0.2, 0.3, 0.4, 0.5, -0.1, -0.2, -0.3, 0.1, 0.2, 0.3]
 planeZ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02, 0.04, 0.06, 0.08, 0.10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -70,38 +71,41 @@ for i in range(len(planeX)):
     planeY[i] *= planeSize
     planeZ[i] *= planeSize
 plane3D = np.array([planeX, planeY, planeZ])
-        
-temp = [[0 for x in range(len(planeX))] for y in range(3)] 
-temp2 = [[0 for x in range(len(planeX))] for y in range(3)] 
 
+#this will be used for orientation calculation
+temp = [[0 for x in range(len(planeX))] for y in range(3)]
+temp2 = [[0 for x in range(len(planeX))] for y in range(3)]
+
+#this will be used to make read data into correct format
 def gen():
     for i in range(len(posX)):
         yield np.array([posX[i], posY[i], -1 * posZ[i]])
 
-
+#input list of eulerian angles in radians
+#output rotation matrix
 def eulerAnglesToRotationMatrix(theta) :
     R_x = np.array([[1,         0,                  0                   ],
                     [0,         math.cos(theta[0]), -math.sin(theta[0]) ],
                     [0,         math.sin(theta[0]), math.cos(theta[0])  ]
                     ])
-    
+
     R_y = np.array([[math.cos(theta[1]),    0,      math.sin(theta[1])  ],
                     [0,                     1,      0                   ],
                     [-math.sin(theta[1]),   0,      math.cos(theta[1])  ]
                     ])
-                 
+
     R_z = np.array([[math.cos(theta[2]),    -math.sin(theta[2]),    0],
                     [math.sin(theta[2]),    math.cos(theta[2]),     0],
                     [0,                     0,                      1]
                     ])
-                    
+
     R = np.dot(R_z, np.dot( R_y, R_x ))
- 
+
     return R
 
-
+#called upon animating the drone flight motion
 def update(num, data, line):
-#    plt.plot(temp[0][:], temp[1][:], temp[2][:], 'wo')
+
     line.set_data(data[:2, :num])
     line.set_3d_properties(data[2, :num])
     currOrientation = [roll[timeCount], -1 * pitch[timeCount], yaw[timeCount]]
@@ -111,10 +115,7 @@ def update(num, data, line):
     for i in range(3):
         for j in range(len(planeX)):
             temp2[i][j] = temp[i][j] + data[i][timeCount]
-    
-    
-#    temp2 = np.matmul(currR, temp)
-    
+
     ax.clear()
     ax.set_xlim3d([min(posX), max(posX)])
     ax.set_xlabel('X')
@@ -125,54 +126,19 @@ def update(num, data, line):
     ax.set_zlim3d([-1 * max(posZ), -1 * min(posZ)])
     ax.set_zlabel('Z')
     ax.plot(temp2[0][:], temp2[1][:], temp2[2][:], 'ro')
-#    ax.plot(temp[0][:], temp[1][:], temp[2][:], 'ro')
+
     global timeCount
     sleep(0.1 * timeDif[timeCount])
     if timeCount == len(timeDif) - 1:
         plt.close()
         sys.exit()
     timeCount += 1
-    
-    
 
 N = 1000
 data = np.array(list(gen())).T
 line, = ax.plot(data[0, 0:1], data[1, 0:1], data[2, 0:1])
 
 ani = animation.FuncAnimation(fig, update, N, fargs=(data, line), interval=10000/N, blit=False)
-#ani.save('matplot003.gif', writer='imagemagick')
-
-#Figure for drone motion
-#fig2 = plt.figure(2)
-#ax2 = p3.Axes3D(fig2)
-#
-#ax2.set_xlim3d([-2, 2])
-#ax2.set_xlabel('X')
-#
-#ax2.set_ylim3d([-2, 2])
-#ax2.set_ylabel('Y')
-#
-#ax2.set_zlim3d([-2, 2])
-#ax2.set_zlabel('Z')
-#
-#planeX = [1, 0.8, 0.6, 0.4, 0.2, 0, -0.2, -0.4, -0.6, -0.8, -1, -1, -1, -1, -1, -1, -0.1, -0.2, -0.3, -0.4, -0.5, -0.1, -0.2, -0.3, -0.4, -0.5, -1, -1, -1, -1, -1, -1]
-#planeY = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.1, -0.2, -0.3, -0.4, -0.5, 0.1, 0.2, 0.3, 0.4, 0.5, -0.1, -0.2, -0.3, 0.1, 0.2, 0.3]
-#planeZ = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-#plane3D = [planeX, planeY, planeZ]
-#
-#plt.plot(planeX, planeY, planeZ, 'ok')
 
 plt.show()
-plt.close()
-
-
-
-
-
-
-
-
-
-
-
-
+# plt.close()
