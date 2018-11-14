@@ -1,6 +1,5 @@
 "# Zip"
-# Zipline Data Scientist Take Home Project
-# Gen Mark Tanno
+
 Code in Python
 Install: pandas, matplotlib, numpy
 
