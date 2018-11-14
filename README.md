@@ -6,7 +6,7 @@ Install: pandas, matplotlib, numpy
 #Two important files:
 1. plot.py
 2. simulation.py
-To run: type python <filename> in command Zipline
+To run: type python "filename" in command line
 
 #plot.py
 -Allows you to choose flight number and dependent and independent variables and makes the graphs for you! Graph is saved in the figures folder and is shown when the code is run.
